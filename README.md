@@ -19,8 +19,8 @@ Learn more:
 
 | Skill | What it does | Key content | Required MCP Server |
 |---|---|---|---|
-| `bicep-avm-code` | Implements/updates Azure Bicep with AVM-first patterns and remediation loops. | Authoring contract, AVM resolution, producer-owned capabilities, remediation guidance | `bicep` |
-| `bicep-avm-validate` | Performs validation-only review of authored Bicep and reports blockers; complements `bicep-avm-code` by acting as the validation gate. | AVM posture checks, security/naming/networking checks, same-file access rules | `bicep` |
+| [`bicep-avm-code`](docs/bicep-avm-code.md) | Implements/updates Azure Bicep with AVM-first patterns and remediation loops. | Authoring contract, AVM resolution, producer-owned capabilities, remediation guidance | `bicep` |
+| [`bicep-avm-validate`](docs/bicep-avm-validate.md) | Performs validation-only review of authored Bicep and reports blockers; complements `bicep-avm-code` by acting as the validation gate. | AVM posture checks, security/naming/networking checks, same-file access rules | `bicep` |
 
 ## MCP setup
 
