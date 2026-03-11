@@ -17,10 +17,16 @@ Learn more:
 
 ## Skills at a glance
 
-| Skill | What it does | Key content |
-|---|---|---|
-| `bicep-avm-code` | Implements/updates Azure Bicep with AVM-first patterns and remediation loops. | Authoring contract, AVM resolution, producer-owned capabilities, remediation guidance |
-| `bicep-avm-validate` | Performs validation-only review of authored Bicep and reports blockers; complements `bicep-avm-code` by acting as the validation gate. | AVM posture checks, security/naming/networking checks, same-file access rules |
+| Skill | What it does | Key content | Required MCP Server |
+|---|---|---|---|
+| `bicep-avm-code` | Implements/updates Azure Bicep with AVM-first patterns and remediation loops. | Authoring contract, AVM resolution, producer-owned capabilities, remediation guidance | `bicep` |
+| `bicep-avm-validate` | Performs validation-only review of authored Bicep and reports blockers; complements `bicep-avm-code` by acting as the validation gate. | AVM posture checks, security/naming/networking checks, same-file access rules | `bicep` |
+
+## MCP setup
+
+If a skill requires an MCP server, install and register it before use.
+
+- MCP server setup: [`docs/mcp-setup.md`](docs/mcp-setup.md)
 
 ## Install
 
@@ -28,10 +34,6 @@ Install a skill with Codex `skill-installer` from this repo path:
 
 ```text
 $skill-installer install https://github.com/Hardstl/skills/tree/main/skills/.curated/bicep-avm-code
-```
-
-```text
-$skill-installer install https://github.com/Hardstl/skills/tree/main/skills/.curated/bicep-avm-validate
 ```
 
 If Codex is already running, restart it after installation so new skills are loaded.

@@ -7,6 +7,20 @@ description: Validate authored Azure Bicep against AVM-first rules and report bl
 
 Review authored Bicep without mutating the infrastructure design. This skill is a self-contained validator for AVM-first Azure Bicep.
 
+## Prerequisite check
+
+Before validation:
+
+```powershell
+bicep --version
+```
+
+Required tools:
+
+- `mcp__bicep__get_bicep_file_diagnostics`
+- `bicep build <entrypoint.bicep>`
+- `bicep lint <entrypoint.bicep>`
+
 ## Workflow
 
 1. Identify the env-specific entrypoint and supporting Bicep files in scope.
