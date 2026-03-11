@@ -68,8 +68,8 @@ Implement:
    - VNet CIDR: 10.40.0.0/24
    - Subnets:
      - snet-app: 10.40.0.0/26
-     - snet-pe: 10.40.64.0/26
-     - snet-data: 10.40.128.0/26
+     - snet-pe: 10.40.0.64/26
+     - snet-data: 10.40.0.128/26
    - Associate NSGs to all subnets
    - Do not deploy private DNS zones, it's centrally managed via policies
 2) Observability
