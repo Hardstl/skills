@@ -67,13 +67,11 @@ Need to author from a structured handoff artifact?
 Need to convert existing Bicep to AVM?
 -> Read references/avm-resolution.md
 -> Read references/producer-owned-capabilities.md
--> Then read references/service-patterns.md
 
 Need to add or update Azure service wiring?
 -> Read references/avm-resolution.md
 -> Read references/producer-owned-capabilities.md
--> Read references/service-patterns.md
--> Then read references/security-naming-networking.md
+-> Read references/security-naming-networking.md
 
 Need to fix validation blockers or dependency cycles?
 -> Read references/remediation.md
@@ -92,7 +90,6 @@ Open only what you need:
 - `references/avm-resolution.md` -> AVM lookup order, targeted upstream capability proof, and exception rules
 - `references/producer-owned-capabilities.md` -> normative catalog of producer-owned AVM parameters that must replace sibling resources or helper modules
 - `references/security-naming-networking.md` -> shared security, naming, tagging, subnet, and exposure guardrails
-- `references/service-patterns.md` -> illustrative examples only; use the capability catalog as the enforcement source
 - `references/remediation.md` -> validator blocker handling, dependency-cycle repair, and fail-closed exception re-checks
 - `../bicep-avm-validate/SKILL.md` -> implementation contract for the `bicep-avm-validate` skill; use that skill as the internal validation gate after authoring and after each remediation pass, not as a separate review handoff
 
