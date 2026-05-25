@@ -30,7 +30,12 @@ If a skill requires an MCP server, install and register it before use.
 
 ## Install
 
-Install a skill with Codex `skill-installer` from this repo path (requires write access to C:\\Users\\USERNAME\\.codex):
+Install a skill with Codex `skill-installer` from this repo path.
+
+Codex installs user skills under:
+
+- macOS/Linux: `~/.codex/skills`
+- Windows: `C:\Users\USERNAME\.codex\skills`
 
 ```text
 $skill-installer install https://github.com/Hardstl/skills/tree/main/skills/.curated/bicep-avm-code
