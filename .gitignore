@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Generated outputs
+outputs/
+
+# Editor and local environment files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
