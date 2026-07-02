@@ -1,0 +1,4 @@
+interface:
+  display_name: "Azure Architecture Imagegen"
+  short_description: "Generate Azure architecture diagrams"
+  default_prompt: "Use $azure-architecture-imagegen to generate a Microsoft Learn-style Azure architecture diagram and save the PNG under outputs/azure-architecture-imagegen/."
