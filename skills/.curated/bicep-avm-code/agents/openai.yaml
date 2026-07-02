@@ -1,7 +1,7 @@
 interface:
-  display_name: "Bicep AVM Authoring"
-  short_description: "Author and remediate Azure Bicep with AVM-first patterns"
-  default_prompt: "Author or update Azure Bicep with AVM-first patterns, use the design brief, structured handoff artifact, or task context as the contract, then run an internal validation and remediation loop with at most two remediation passes before returning validated output."
+  display_name: "Bicep AVM Code"
+  short_description: "Author AVM Bicep with environment params"
+  default_prompt: "Use $bicep-avm-code to author or refactor AVM-first Bicep, generate environment parameter files when real values are known, and run diagnostics, build, lint, parameter builds, and the AVM posture checker."
 
 dependencies:
   tools:

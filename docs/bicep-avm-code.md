@@ -2,45 +2,48 @@
 
 ## Skill Overview
 
-`bicep-avm-code` is the implementation skill for Azure Bicep templates. It is used to author or refactor templates with an AVM-first posture, then remediate issues until the code is deployment-ready.
+`bicep-avm-code` is an example-led authoring skill for Azure Bicep templates using Azure Verified Modules (AVM). It authors or refactors Bicep code by reading a compact authoring contract, checking anti-patterns and capability ownership, and matching the closest golden Bicep reference.
 
-Use it when you already know what solution to build and need clean, production-grade infrastructure code. Do not use it for architecture discovery or validation-only review.
+Use it when agents need canonical examples to anchor direct module usage, low parameter surface area, producer-owned capabilities, private-by-default posture, environment parameter files, and executable checks. Do not use it for broad architecture discovery or validation-only review.
 
-This solution is AVM all the way: it should not rely on local module files or heavy parameterazation. Use direct `br/public:avm/...` modules and keep inputs limited to essential runtime and operational values.
+This solution is AVM all the way: it should not rely on local module files or heavy parameterization. Use direct `br/public:avm/...` modules and keep inputs limited to essential runtime, secret, environment, and operational values.
 
 ## Inputs and Preconditions
 
-Provide the design brief (or equivalent task context). Also provide:
+Provide the design brief or existing Bicep to refactor. Include:
 
-- Project name (used for naming resources)
-- Environment such as `dev`, `test`, `qa`, or `prod` (used for naming resources)
+- Project name
+- Environment such as `dev`, `test`, `qa`, or `prod`
+- Location
+- Deployment scope and requested services
+- Private/public exposure intent
 
 Before coding, confirm tools are available:
 
 - `bicep --version`
 - `mcp__bicep__list_avm_metadata`
-- `mcp__bicep__get_bicep_best_practices`
 - `mcp__bicep__get_bicep_file_diagnostics`
 - `bicep build`
 - `bicep lint`
 
 ## Workflow
 
-1. Resolve required services and pinned AVM modules from one metadata snapshot.
-2. Author with direct `br/public:avm/...` module references and apply producer-owned capabilities where supported.
-3. Apply production guardrails: managed identity by default, secure defaults, required tags, and private networking posture when requested.
-4. Run diagnostics, `bicep build`, `bicep lint`, and validation (`bicep-avm-validate`).
-5. If blockers appear, remediate and re-validate. Stop after two remediation passes and report remaining blockers clearly.
+1. Read `references/authoring-contract.md`, `references/anti-patterns.md`, `references/capability-discovery.md`, and the closest golden Bicep example.
+2. Resolve required inputs from context, and ask concise questions before authoring when `projectName`, `environment`, location, scope, services, or exposure intent are missing.
+3. Resolve required services and pinned AVM modules from one metadata snapshot.
+4. Author or refactor with direct `br/public:avm/...` module references and producer-owned capabilities discovered from selected module documentation.
+5. Evaluate whether `main.<environment>.bicepparam` files can be generated from known values. Do not create placeholder parameter files.
+6. Run diagnostics, `bicep build`, `bicep lint`, `bicep build <params-file>.bicepparam` for generated parameter files, and `scripts/check-avm-authoring.sh`.
+7. Remediate blockers and re-run checks. Stop after two remediation passes and report remaining blockers clearly.
 
 ## Outputs and Handoff
 
-The expected output is updated, deployable Bicep code plus a short implementation summary.
-
-Include these handoff details:
-
+- Files changed
+- Environment parameter files generated, or omitted with missing values per environment
 - AVM module paths and pinned versions used
-- Exceptions used (and why), if any
-- Validation/remediation status and any unresolved blockers
+- Diagnostics/build/lint/parameter-build/checker status
+- Exceptions used and why
+- Unresolved blockers, if any
 
 ## Prompt Guide
 
@@ -48,8 +51,8 @@ Use direct prompts that include scope, services, security intent, and naming inp
 
 Simple prompts:
 
-- "Use `$bicep-avm-code` to implement a prod VNet + Storage + Key Vault solution. Project name is `contoso-payments`, environment is `prod`, private access only. For the VNet use address space 10.200.0.0/24."
-- "Refactor this Bicep to AVM-first modules and remove wrapper modules. Keep behavior equivalent. Project `fabrikam-data`, environment `qa`."
+- "Use `$bicep-avm-code` to implement a private prod VNet + Storage + Key Vault + Function App solution. Project name is `contoso-payments`, environment is `prod`, location is `westeurope`."
+- "Use `$bicep-avm-code` to refactor this Bicep to direct AVM modules. Preserve behavior, remove local wrappers, and match the golden example style."
 
 Advanced prompt:
 
@@ -93,4 +96,6 @@ Implement:
    - Function App (powershell, flex consumption)
    - VNet integration to snet-app
    - Private endpoint enabled
+
+Generate `main.dev.bicepparam`, `main.test.bicepparam`, and `main.prod.bicepparam` only when all required values are known. Run diagnostics, build, lint, parameter builds, and `scripts/check-avm-authoring.sh`.
 ```

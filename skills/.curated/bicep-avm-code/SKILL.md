@@ -1,131 +1,67 @@
 ---
 name: bicep-avm-code
-description: Author, update, refactor, and remediate Azure Bicep using Azure Verified Modules (AVM). Use when Codex needs to implement infrastructure from a design brief, structured handoff artifact, or explicit task context, convert existing Bicep to AVM-first patterns, repair dependency or layout issues, or fix Bicep authoring blockers. Do not use for research-only tasks or validation-only review.
+description: Author or refactor Azure Bicep using Azure Verified Modules (AVM) from canonical reference examples. Use when Codex needs to create production-ready AVM-first Bicep, convert native or wrapper-heavy Bicep into direct AVM module usage, or enforce a compact example-led AVM authoring style with diagnostics, build, lint, parameter builds, and posture checks. Do not use for validation-only review or broad architecture discovery.
 ---
 
 # Bicep AVM Code
 
-Implement Azure infrastructure in Bicep with an AVM-first posture. Keep this skill focused on authoring and remediation. Do not re-run architecture research, and do not act as the final validation gate.
+Author Azure Bicep by copying the shape of the golden examples, not by inventing a new template architecture. Treat this skill as example-led authoring with executable checks.
 
-## Source of truth order
+## Required reading
 
-Use this order whenever inputs disagree:
+Before authoring or refactoring, read these files:
 
-1. design brief, structured handoff artifact, or explicit task context
-2. `mcp__bicep__list_avm_metadata`
-3. `mcp__bicep__get_bicep_best_practices`
-4. `mcp__bicep__get_bicep_file_diagnostics`, `bicep build`, and `bicep lint`
-5. The reference files in this skill
+1. `references/authoring-contract.md`
+2. `references/anti-patterns.md`
+3. `references/capability-discovery.md`
+4. The closest matching golden Bicep file:
+   - `references/golden-private-webapp-platform.bicep` for private Linux Web App plus Function App, VNet integration, hardened Storage, Key Vault, and managed identity patterns
+   - `references/golden-brownfield-private-workload.bicep` for private workloads deployed into existing shared subnets and monitoring resources
+   - `references/golden-container-platform.bicep` for private Azure Container Apps workloads with ACR, managed identity, Key Vault, and observability patterns
+   - `references/golden-data-platform.bicep` for SQL, Storage, Key Vault, and Service Bus patterns
 
-## Prerequisite check
+Prefer the golden examples for layout, naming flow, module shape, parameter minimalism, and producer-owned capabilities. Prefer current AVM metadata and Bicep diagnostics over stale example versions.
 
-Before authoring:
+## Workflow
 
-```powershell
-bicep --version
-```
+1. Resolve required inputs from task context: project name, environment, location, deployment scope, services, and private/public exposure intent.
+2. If any required input is missing and cannot be safely inferred, stop the authoring workflow and ask concise user-facing questions before doing any Bicep authoring, metadata-dependent design, or output-file generation.
+   - Ask no more than three batched questions.
+   - In Plan mode, use `request_user_input` when that tool is available.
+   - In Default mode or when the tool is unavailable, ask the questions directly in chat.
+   - Do not replace the question step with a blocked handoff artifact unless the user explicitly asked for a written intake artifact.
+3. Run `bicep --version`.
+4. Resolve AVM module paths and pinned versions with `mcp__bicep__list_avm_metadata`.
+5. Read the selected module documentation from metadata `documentationUri` values when parameter details are needed.
+6. Author or refactor the entrypoint to match the closest golden example's shape.
+7. Evaluate whether environment parameter files can be generated. Use `main.<environment>.bicepparam` naming, for example `main.dev.bicepparam`, `main.test.bicepparam`, and `main.prod.bicepparam`, only when all required parameter values are known or explicitly provided.
+8. Keep module versions current by using the metadata snapshot, not the versions in the golden examples.
+9. Run `mcp__bicep__get_bicep_file_diagnostics`, `bicep build <entrypoint.bicep>`, `bicep lint <entrypoint.bicep>`, and `bicep build <params-file>.bicepparam` for every generated parameter file.
+10. Run `scripts/check-avm-authoring.sh <entrypoint-or-directory>`.
+11. Remediate blockers and repeat checks. Stop after 2 remediation passes and report remaining blockers.
 
-Required tools:
+## Hard rules
 
-- `mcp__bicep__list_avm_metadata`
-- `mcp__bicep__get_bicep_best_practices`
-- `mcp__bicep__get_bicep_file_diagnostics`
-- `bicep build <entrypoint.bicep>`
-- `bicep lint <entrypoint.bicep>`
+- Missing-input gate: do not author files, produce a proposed Bicep skeleton, or create output artifacts before asking for missing required inputs, unless the user explicitly requested an intake artifact instead of code.
+- Use direct `br/public:avm/...:<version>` module references for AVM-covered resources.
+- Do not introduce local wrapper modules for AVM resources.
+- Do not create native resources or sibling modules for capabilities that a selected producer AVM module can own.
+- Discover producer-owned capabilities from the selected module documentation; do not rely on a fixed service-type list.
+- Do not author without `projectName` and `environment` unless they are safely inferred from explicit context or an existing local convention.
+- Keep parameters limited to runtime, secret, environment, and operational inputs. Put fixed design choices in variables and module properties.
+- Do not create `.bicepparam` files with placeholders or fabricated values. Generate them only with real known values, explicit user-provided values, or safe non-secret defaults.
+- Use managed identity by default.
+- When private-only intent is present, disable public network access where supported and use producer-owned private endpoints.
+- Do not create private DNS zones unless task context explicitly requests them or the golden pattern plus module documentation requires them.
+- Never treat the golden example module versions as current without checking metadata.
 
-## Quick start
+## Handoff
 
-Author in this order:
+Return:
 
-1. Resolve AVM coverage and versions with one metadata snapshot.
-2. Consult `references/producer-owned-capabilities.md` for the selected producer modules.
-3. Author or update the entrypoint with direct AVM modules and producer-owned capabilities.
-4. Apply security, naming, networking, and dependency guardrails.
-5. Run diagnostics, build, lint, and the validation contract checks.
-6. If authored-code blockers remain, remediate them and re-run the validation checks.
-7. Stop after at most 2 remediation loops; if blockers still remain after the second loop, report them as unresolved.
-
-## Metadata and documentation discipline
-
-- Run `mcp__bicep__list_avm_metadata` once at the start of module resolution for the task.
-- Treat that first response as the working registry snapshot for the whole turn; cache the selected module paths, versions, and `documentationUri` values in your working notes and reuse them.
-- Do not re-run `mcp__bicep__list_avm_metadata` unless one of these exceptions applies:
-  - `new_service_scope`: a newly introduced Azure service was not part of the original required resource set.
-  - `unresolved_registry_gap`: the initial metadata response did not contain the needed module entry.
-- When a selected metadata entry includes `documentationUri`, use that URI directly for module parameter and capability lookup.
-- Do not run a fresh README, module-name, or version web search when `documentationUri` is already present.
-- Use external documentation lookup only when one of these exceptions applies:
-  - `missing_doc_uri`: the metadata entry does not include `documentationUri`.
-  - `broken_doc_uri`: the `documentationUri` cannot be opened or is clearly stale or incomplete for the pinned version.
-
-## Quick decision tree
-
-```text
-Need to author from a structured handoff artifact?
--> Read references/handoff-inputs.md
-
-Need to convert existing Bicep to AVM?
--> Read references/avm-resolution.md
--> Read references/producer-owned-capabilities.md
-
-Need to add or update Azure service wiring?
--> Read references/avm-resolution.md
--> Read references/producer-owned-capabilities.md
--> Read references/security-naming-networking.md
-
-Need to fix validation blockers or dependency cycles?
--> Read references/remediation.md
--> Use the `bicep-avm-validate` skill as the validation gate
-
-Need to handle a missing AVM?
--> Read references/avm-resolution.md
-```
-
-## Reference map
-
-Open only what you need:
-
-- `references/handoff-inputs.md` -> authoring from a brief or structured handoff artifact, input precedence, remediation cycles
-- `references/authoring-contract.md` -> entrypoint contract, parameter rules, anti-patterns, completion bar
-- `references/avm-resolution.md` -> AVM lookup order, targeted upstream capability proof, and exception rules
-- `references/producer-owned-capabilities.md` -> normative catalog of producer-owned AVM parameters that must replace sibling resources or helper modules
-- `references/security-naming-networking.md` -> shared security, naming, tagging, subnet, and exposure guardrails
-- `references/remediation.md` -> validator blocker handling, dependency-cycle repair, and fail-closed exception re-checks
-- `../bicep-avm-validate/SKILL.md` -> implementation contract for the `bicep-avm-validate` skill; use that skill as the internal validation gate after authoring and after each remediation pass, not as a separate review handoff
-
-## Validation and remediation loop
-
-- Default to an internal `author -> validate -> remediate -> re-validate` loop before handoff.
-- Use the `bicep-avm-validate` skill for each validation pass, following the contract in `../bicep-avm-validate/SKILL.md`.
-- Count only remediation passes toward the cap; the initial validation after authoring does not consume a loop.
-- Stop after 2 remediation loops maximum.
-- If blockers remain after loop 2, do not start a third remediation pass; report the remaining blockers and the attempted fixes.
-- When the user explicitly asks for validation-only review, do not use this loop; use `bicep-avm-validate` instead.
-
-## Guardrails
-
-- Use direct `br/public:avm/...` references for AVM-covered resources. Treat native resources, local wrappers, or sibling AVM resource modules for those services as blockers unless an exception is recorded.
-- Treat repeated AVM metadata lookups and ad-hoc README or web searches as blockers unless a named metadata or documentation exception is recorded.
-- Keep fixed design choices in module properties and logic, not decision-proxy parameters.
-- Use parameters only for runtime, secret, or operational inputs.
-- Prefer managed identity over secrets, keys, and connection strings.
-- Use `references/producer-owned-capabilities.md` as the normative source for producer-owned child and adjunct capabilities.
-- Treat sibling resources or standalone AVM helper/PTN modules for cataloged producer-owned capabilities as blockers unless the catalog documents a cycle or scope exception.
-- Avoid `consumer -> producer -> consumer` cycles; derive names and IDs when possible.
-- Run capability proof only for a specific producer module plus a specific capability inferred from declared fallback code or a validator blocker.
-- For uncataloged modules, allow generic direct-AVM authoring of the producer resource but do not invent local capability rules or fallback sibling resources from memory.
-- Use native resources or standalone helper/PTN modules only when targeted proof shows the producer AVM lacks the capability or a real cycle/scope exception is recorded.
-- Never use restored caches, `main.json`, recursive source extraction, or broad param hunting as capability proof.
-- Do not skip diagnostics, build, or lint.
-- Do not skip the internal validation gate after authoring or after a remediation pass.
-- When the brief’s intent language signals “private,” “corp,” “no public access,” or similar, assume every AVM-capable resource needs producer-owned private endpoints (and Private DNS if available) and ensure `publicNetworkAccess` is disabled unless a documented exception permits mixed access.
-- Never clone or download repositories or files locally just to research AVM modules or documentation; rely only on sanctioned tools and references.
-
-## Exclusions
-
-Do not use this skill to:
-
-- perform architecture research or service selection
-- ask the user to choose SKUs that should already be resolved
-- act as the final validation sign-off
-- replace explicit task context with inferred product choices
+- files changed
+- environment parameter files generated, or omitted with missing values per environment
+- AVM module paths and pinned versions used
+- diagnostics/build/lint/parameter-build/checker status
+- documented exceptions, if any
+- unresolved blockers after remediation, if any
